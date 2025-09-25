@@ -1,17 +1,18 @@
 [build]
-  base = "."
-  publish = "public"
-  command = "cd client && npm install && npm run build"
+  base = "client"
+  publish = "build"
+  command = "npm install --legacy-peer-deps && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
+  NODE_OPTIONS = "--max_old_space_size=4096"
+  CI = "false"
+  # Update with your actual API URL
+  REACT_APP_API_URL = "https://your-api-url.railway.app"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[dev]
-  command = "cd client && npm start"
-  port = 3000
-  publish = "public"
+  force = true
