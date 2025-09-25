@@ -1,32 +1,13 @@
-# Build configuration for Netlify
 [build]
-  # Base directory is the root of the repository
-  base = "."
-  # Build command will run in the client directory
-  command = "cd client && npm install --legacy-peer-deps && CI=false npm run build"
-  # Publish directory is relative to the base directory
-  publish = "client/build"
+  command = "npm run build"
+  publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18.17.1"
-  NPM_FLAGS = "--legacy-peer-deps"
-  NODE_OPTIONS = "--max_old_space_size=4096"
-  CI = "false"
-  # Update with your actual API URL
-  REACT_APP_API_URL = "https://your-api-url.com/api"
+  NODE_VERSION = "20.17.0"
 
-# SPA redirects
+# Handle Next.js routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = true
-
-# Security headers
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
