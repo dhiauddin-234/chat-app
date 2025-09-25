@@ -1,7 +1,7 @@
 [build]
-  base = "client"
+  base = "."
   publish = "client/build"
-  command = "npm run build"
+  command = "cd client && npm install && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -12,6 +12,6 @@
   status = 200
 
 [dev]
-  command = "npm start"
+  command = "cd client && npm start"
   port = 3000
   publish = "client/build"
