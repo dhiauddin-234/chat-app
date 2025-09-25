@@ -1,11 +1,14 @@
 # example netlify.toml
 [build]
-  base = "chat-app"
-  command = "npm run build"
+  base = "chat-app/client"
+  command = "npm install --legacy-peer-deps && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20.17.0"
+  NPM_FLAGS = "--legacy-peer-deps"
+  NODE_OPTIONS = "--max_old_space_size=4096"
+  CI = "false"
 
 # Handle Next.js routing
 [[redirects]]
@@ -13,6 +16,15 @@
   to = "/index.html"
   status = 200
   force = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
   ## (optional) Settings for Netlify Dev
   ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
   #[dev]
