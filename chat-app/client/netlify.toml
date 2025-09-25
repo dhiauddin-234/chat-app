@@ -8,7 +8,7 @@
   NODE_OPTIONS = "--max_old_space_size=4096"
   CI = "false"
   # Update with your actual API URL
-  REACT_APP_API_URL = "https://your-api-url.railway.app"
+  REACT_APP_API_URL = "https://your-api-url.com/api"
 
 [[redirects]]
   from = "/*"
