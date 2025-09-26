@@ -37,18 +37,33 @@ class AuthService {
 
   async login(credentials) {
     try {
+      console.log('Attempting to login with credentials:', { email: credentials.email });
+      
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(credentials),
+        credentials: 'include' // Important for cookies if using httpOnly
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        throw new Error('Invalid server response');
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        console.error('Login failed:', { status: response.status, data });
+        throw new Error(data.message || `Login failed with status ${response.status}`);
+      }
+
+      if (!data.token) {
+        console.error('No token received in response:', data);
+        throw new Error('Authentication failed: No token received');
       }
 
       // Store token and user data
@@ -56,7 +71,8 @@ class AuthService {
       this.user = data.user;
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
+      
+      console.log('Login successful for user:', data.user?.email);
       return data;
     } catch (error) {
       console.error('Login error:', error);
