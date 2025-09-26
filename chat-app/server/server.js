@@ -11,28 +11,38 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
+  'https://chat-app-gmfn.onrender.com',
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
   'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
 ];
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    // Check if the origin is in the allowed list or is a subdomain
+    if (allowedOrigins.includes(origin) || 
+        allowedOrigins.some(allowed => origin.startsWith(allowed.replace('https://', 'http://')))) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // Log unauthorized requests for debugging
+    console.warn(`CORS blocked request from origin: ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With'],
+  exposedHeaders: ['Authorization']
 }));
 
 // Handle preflight requests
+app.options('*', cors());
 app.options('*', cors());
 
 app.use(express.json());
@@ -50,18 +60,20 @@ const io = new Server(server, {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
+      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
-      return callback(null, true);
+      
+      console.warn(`Socket.IO CORS blocked request from origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
     },
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With'],
+    credentials: true,
+    exposedHeaders: ['Authorization']
   },
   // Enable WebSocket transport only for better performance
-  transports: ['websocket'],
+  transports: ['websocket', 'polling'], // Add polling as fallback
   // Enable connection state recovery
   connectionStateRecovery: {
     // The backup duration of the sessions and the packets
