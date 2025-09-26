@@ -9,12 +9,24 @@ const roomManager = require('./roomManager');
 
 const app = express();
 
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
+];
+
 // Enable CORS for all routes
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -34,12 +46,28 @@ app.use((req, res, next) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
+  },
+  // Enable WebSocket transport only for better performance
+  transports: ['websocket'],
+  // Enable connection state recovery
+  connectionStateRecovery: {
+    // The backup duration of the sessions and the packets
+    maxDisconnectionDuration: 2 * 60 * 1000,
+    // Whether to skip middlewares upon successful recovery
+    skipMiddlewares: true,
   }
 });
 

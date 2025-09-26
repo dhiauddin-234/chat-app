@@ -40,7 +40,13 @@ function App() {
       socket.disconnect();
     }
 
-    socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
+    // Use environment variable for socket URL
+    const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+    console.log('Connecting to socket:', socketUrl);
+    socket = io(socketUrl, {
+      withCredentials: true,
+      transports: ['websocket']
+    });
 
     socket.on('connect', () => {
       console.log('Connected to server');
