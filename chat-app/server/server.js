@@ -8,15 +8,38 @@ const auth = require('./auth');
 const roomManager = require('./roomManager');
 
 const app = express();
-app.use(cors());
+
+// Enable CORS for all routes
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
+
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: [
+      'http://localhost:3000',
+      'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
