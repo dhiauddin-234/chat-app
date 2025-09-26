@@ -1,23 +1,20 @@
 [build]
   base = "client"
   command = "npm install --legacy-peer-deps && npm run build"
-  publish = "client/.next"
+  publish = "client/build"
 
 [build.environment]
-  NODE_VERSION = "20.17.0"
+  NODE_VERSION = "18.0.0"  # Recommended LTS version for CRA
   NPM_FLAGS = "--legacy-peer-deps"
   NODE_OPTIONS = "--max_old_space_size=4096"
   CI = "false"
+  GENERATE_SOURCEMAP = "false"
 
-# Handle Next.js routing
+# Required for Create React App SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
-
-# Required for Next.js SPAs
-[[redirects]]
   from = "/_next/static/*"
   to = "/_next/static/:splat"
   status = 200
