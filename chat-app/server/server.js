@@ -12,11 +12,12 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   'https://chat-app-gmfn.onrender.com',
+  'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app',
+  // Local development
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:3001',
-  'http://127.0.0.1:3001',
-  'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app'
+  'http://127.0.0.1:3001'
 ];
 
 // Enable CORS for all routes

@@ -40,12 +40,16 @@ function App() {
       socket.disconnect();
     }
 
-    // Use environment variable for socket URL
-    const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+    // Use HTTPS for production, HTTP for local development
+    const socketUrl = process.env.NODE_ENV === 'production'
+      ? 'https://chat-app-gmfn.onrender.com'
+      : 'http://localhost:5000';
+      
     console.log('Connecting to socket:', socketUrl);
     socket = io(socketUrl, {
       withCredentials: true,
-      transports: ['websocket']
+      transports: ['websocket'],
+      secure: process.env.NODE_ENV === 'production'
     });
 
     socket.on('connect', () => {

@@ -1,6 +1,9 @@
 import authService from './authService';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Use HTTPS for production, HTTP for local development
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://chat-app-gmfn.onrender.com/api'
+  : 'http://localhost:5000/api';
 
 class RoomService {
   async createRoom(roomData) {
