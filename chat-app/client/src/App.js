@@ -40,16 +40,15 @@ function App() {
       socket.disconnect();
     }
 
-    // Use HTTPS for production, HTTP for local development
-    const socketUrl = process.env.NODE_ENV === 'production'
-      ? 'https://chat-app-gmfn.onrender.com'
-      : 'http://localhost:5000';
+    // Use local development server for demo
+    const socketUrl = 'http://localhost:5000';
       
     console.log('Connecting to socket:', socketUrl);
     socket = io(socketUrl, {
       withCredentials: true,
-      transports: ['websocket'],
-      secure: process.env.NODE_ENV === 'production'
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true
     });
 
     socket.on('connect', () => {
@@ -73,6 +72,11 @@ function App() {
 
     socket.on('disconnect', () => {
       console.log('Disconnected from server');
+      setIsConnected(false);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
       setIsConnected(false);
     });
   };

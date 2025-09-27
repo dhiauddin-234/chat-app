@@ -10,7 +10,7 @@
 }
 
 body {
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -21,69 +21,86 @@ body {
 
 .join-container {
   background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   text-align: center;
   max-width: 400px;
   width: 100%;
+  backdrop-filter: blur(10px);
 }
 
 .join-container h1 {
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 2rem;
 }
 
 .join-container input {
   width: 100%;
-  padding: 0.8rem;
+  padding: 1rem;
   margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
   font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.join-container input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .join-container button,
 .message-form button {
-  background-color: #4a90e2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 5px;
+  padding: 1rem 2rem;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .join-container button:hover,
 .message-form button:hover {
-  background-color: #357abd;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .chat-container {
   display: flex;
-  height: 80vh;
-  width: 90%;
+  height: 85vh;
+  width: 95%;
   max-width: 1200px;
   background: white;
-  border-radius: 10px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 .sidebar {
-  width: 250px;
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-right: 1px solid #eee;
+  width: 280px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem;
+  border-right: 1px solid #dee2e6;
   overflow-y: auto;
 }
 
 .sidebar h3 {
   margin-bottom: 1rem;
-  color: #333;
+  color: #2c3e50;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 2px solid #667eea;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .sidebar ul {
@@ -91,19 +108,21 @@ body {
 }
 
 .sidebar li {
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   display: flex;
   align-items: center;
-  color: #555;
+  color: #495057;
+  font-weight: 500;
 }
 
 .user-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: #4caf50;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border-radius: 50%;
-  margin-right: 0.5rem;
+  margin-right: 0.75rem;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
 }
 
 .chat {
@@ -114,62 +133,76 @@ body {
 
 .chat-messages {
   flex: 1;
-  padding: 1.5rem;
+  padding: 2rem;
   overflow-y: auto;
-  background-color: #f9f9f9;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 .message {
-  margin-bottom: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
   max-width: 70%;
   word-wrap: break-word;
-  line-height: 1.4;
+  line-height: 1.5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .message.sent {
   margin-left: auto;
-  background-color: #e3f2fd;
-  border-bottom-right-radius: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 4px;
 }
 
 .message.received {
   margin-right: auto;
-  background-color: #f1f1f1;
-  border-bottom-left-radius: 0;
+  background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+  color: #2c3e50;
+  border-bottom-left-radius: 4px;
 }
 
 .message.system {
   margin: 0.5rem auto;
-  background: none;
-  color: #777;
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  color: #2d3436;
   font-style: italic;
+  text-align: center;
+  font-weight: 500;
 }
 
 .message-username {
   font-weight: bold;
   margin-right: 0.5rem;
+  font-size: 0.9rem;
 }
 
 .message-form {
   display: flex;
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: white;
-  border-top: 1px solid #eee;
+  border-top: 2px solid #e9ecef;
 }
 
 .message-form input {
   flex: 1;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px 0 0 5px;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px 0 0 12px;
   font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.message-form input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .message-form button {
-  border-radius: 0 5px 5px 0;
-  padding: 0 1.5rem;
+  border-radius: 0 12px 12px 0;
+  padding: 0 2rem;
+  font-weight: 600;
 }
 
 /* Loading and Connecting States */
@@ -182,18 +215,18 @@ body {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 .loading-spinner,
 .connecting-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 @keyframes spin {
@@ -204,8 +237,9 @@ body {
 .loading-container p,
 .connecting-container p {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive Design */

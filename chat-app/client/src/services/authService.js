@@ -1,7 +1,5 @@
-// Use HTTPS for production, HTTP for local development
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://chat-app-gmfn.onrender.com/api'
-  : 'http://localhost:5000/api';
+// Use local development server for demo
+const API_BASE_URL = 'http://localhost:5000/api';
 
 class AuthService {
   constructor() {
