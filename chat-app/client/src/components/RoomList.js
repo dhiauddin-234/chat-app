@@ -109,13 +109,13 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
   return (
     <div className="room-list">
       <div className="room-list-header">
-        <h3>Chat Rooms</h3>
+        <h3>Professional Rooms</h3>
         <button 
           className="create-room-btn"
           onClick={() => setShowCreateRoom(true)}
-          title="Create new room"
+          title="Create New Room"
         >
-          Create Room
+          +
         </button>
       </div>
 

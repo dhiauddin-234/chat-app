@@ -71,7 +71,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
     <div className="create-room-overlay">
       <div className="create-room-modal">
         <div className="create-room-header">
-          <h2>🏠 Create New Room</h2>
+          <h2>🏢 Create New Room</h2>
           <button className="close-button" onClick={onClose} disabled={isLoading}>
             ✕
           </button>
@@ -93,6 +93,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
               required
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
+            }
           </div>
 
           <div className="input-group">
@@ -108,6 +109,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
               rows={3}
             />
             {errors.description && <span className="error-message">{errors.description}</span>}
+            }
           </div>
 
           <div className="checkbox-group">

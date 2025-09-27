@@ -145,7 +145,10 @@ function App() {
     return (
       <div className="connecting-container">
         <div className="connecting-spinner"></div>
-        <p>Connecting to chat...</p>
+        <p>Connecting to Chat Server...</p>
+        <small style={{marginTop: '8px', opacity: 0.8}}>
+          Please ensure the server is running on localhost:5000
+        </small>
       </div>
     );
   }

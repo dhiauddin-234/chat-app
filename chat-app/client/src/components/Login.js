@@ -69,8 +69,8 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>💬 Chat App</h1>
-          <p>Sign in to join the conversation</p>
+          <h1>💬 Professional Chat</h1>
+          <p>Sign in to your account</p>
         </div>
         
         <form onSubmit={handleSubmit} className="auth-form">
@@ -90,6 +90,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               required
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
+            }
           </div>
 
           <div className="input-group">
@@ -107,6 +108,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               required
             />
             {errors.password && <span className="error-message">{errors.password}</span>}
+            }
           </div>
 
           {errors.submit && (
