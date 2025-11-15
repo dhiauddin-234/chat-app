@@ -9,12 +9,11 @@
     "@testing-library/user-event": "^13.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.9.6",
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.7.2",
     "web-vitals": "^2.1.4"
   },
-  "homepage": ".",
-  "private": true,
   "scripts": {
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",

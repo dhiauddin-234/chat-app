@@ -1,147 +1,47 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 import './Login.css';
 
-const Login = ({ onLogin, onSwitchToRegister }) => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-
     try {
-      await onLogin({
-        email: formData.email,
-        password: formData.password
-      });
+      await authService.login({ email, password });
+      navigate('/rooms');
     } catch (error) {
-      setErrors({ submit: error.message || 'Login failed. Please check your credentials.' });
-      setIsLoading(false);
+      console.error('Login failed', error);
     }
   };
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>💬 Professional Chat</h1>
-          <p>Sign in to your account</p>
+      <form onSubmit={handleSubmit} className="login-form">
+        <h2>Login</h2>
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-        
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="input-group">
-            <label htmlFor="email">Email Address</label>            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              disabled={isLoading}
-              autoComplete="email"
-              autoFocus
-              required
-            />
-            {errors.email && <span className="error-message">{errors.email}</span>}
-          </div>
-
-          <div className="input-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? 'error' : ''}
-              disabled={isLoading}
-              autoComplete="current-password"
-              required
-            />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
-
-          {errors.submit && (
-            <div className="error-message submit-error">{errors.submit}</div>
-          )}
-          
-          <button 
-            type="submit" 
-            className="login-button"
-            disabled={isLoading || !formData.email || !formData.password}
-          >
-            {isLoading ? (
-              <>
-                <span className="spinner"></span>
-                Signing In...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </button>
-        </form>
-        
-        <div className="login-footer">
-          <p>
-            Don't have an account?{' '}
-            <button 
-              type="button" 
-              className="link-button" 
-              onClick={onSwitchToRegister}
-              disabled={isLoading}
-            >
-              Create Account
-            </button>
-          </p>
+        <div className="form-group">
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
-      </div>
+        <button type="submit" className="btn">Login</button>
+      </form>
     </div>
   );
 };
