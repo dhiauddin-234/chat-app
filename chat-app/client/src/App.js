@@ -5,7 +5,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Chat from './components/Chat';
 import RoomList from './components/RoomList';
-import CreateRoom from './components/CreateRoom';
 import ProtectedRoute from './components/ProtectedRoute';
 import authService from './services/authService';
 import './App.css';
@@ -22,14 +21,6 @@ function App() {
           element={
             <ProtectedRoute isAllowed={authService.isAuthenticated()}>
               <RoomList />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/rooms/create" 
-          element={
-            <ProtectedRoute isAllowed={authService.isAuthenticated()}>
-              <CreateRoom />
             </ProtectedRoute>
           }
         />

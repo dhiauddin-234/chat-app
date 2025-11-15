@@ -17,7 +17,6 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -93,7 +92,6 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
               required
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
-            }
           </div>
 
           <div className="input-group">
@@ -109,7 +107,6 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
               rows={3}
             />
             {errors.description && <span className="error-message">{errors.description}</span>}
-            }
           </div>
 
           <div className="checkbox-group">
