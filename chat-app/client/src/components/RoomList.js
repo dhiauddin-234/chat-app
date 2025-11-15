@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CreateRoom from './CreateRoom';
 import roomService from '../services/roomService';
-import authService from '../services/authService';
 import './RoomList.css';
 
 const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
@@ -9,22 +8,10 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
-  const [deletingRoom, setDeletingRoom] = useState(null);
 
   useEffect(() => {
     loadRooms();
-    loadCurrentUser();
   }, []);
-
-  const loadCurrentUser = async () => {
-    try {
-      const user = authService.getCurrentUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Failed to get current user:', error);
-    }
-  };
 
   const loadRooms = async () => {
     try {
@@ -56,28 +43,6 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
     if (onRoomSelect) {
       onRoomSelect(room);
     }
-  };
-
-  const handleDeleteRoom = async (roomId, roomName) => {
-    if (!window.confirm(`Are you sure you want to delete the room "${roomName}"? This action cannot be undone.`)) {
-      return;
-    }
-
-    try {
-      setDeletingRoom(roomId);
-      await roomService.deleteRoom(roomId);
-      await loadRooms(); // Refresh room list
-      setError('');
-    } catch (error) {
-      setError(`Failed to delete room: ${error.message}`);
-      console.error('Delete room error:', error);
-    } finally {
-      setDeletingRoom(null);
-    }
-  };
-
-  const canDeleteRoom = (room) => {
-    return currentUser && room.createdBy === currentUser.id && room.id !== 'general';
   };
 
   const formatDate = (dateString) => {
@@ -166,19 +131,6 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
                     <div className="room-actions">
                       {room.isMember && (
                         <span className="member-badge">Member</span>
-                      )}
-                      {canDeleteRoom(room) && (
-                        <button
-                          className="delete-room-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRoom(room.id, room.name);
-                          }}
-                          disabled={deletingRoom === room.id}
-                          title="Delete room"
-                        >
-                          {deletingRoom === room.id ? 'Deleting...' : 'Delete'}
-                        </button>
                       )}
                     </div>
                   </div>

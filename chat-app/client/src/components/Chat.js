@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import roomService from '../services/roomService';
 import './Chat.css';
 
-const Chat = ({ socket, username, user, onLogout }) => {
+const Chat = ({ socket, username, user }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
@@ -76,7 +76,6 @@ const Chat = ({ socket, username, user, onLogout }) => {
       <div className="chat-main">
         <div className="chat-header">
           <h2>{currentRoomInfo ? currentRoomInfo.name : 'Chat'}</h2>
-          <button onClick={onLogout} className="logout-button">Logout</button>
         </div>
         <div className="chat-messages">
           {messages.map((msg, index) => (
