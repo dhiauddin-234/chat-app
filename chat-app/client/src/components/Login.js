@@ -75,8 +75,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
-            <label htmlFor="email">Email Address</label>
-            <input
+            <label htmlFor="email">Email Address</label>            <input
               id="email"
               name="email"
               type="email"
@@ -90,7 +89,6 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               required
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
-            }
           </div>
 
           <div className="input-group">
@@ -108,7 +106,6 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               required
             />
             {errors.password && <span className="error-message">{errors.password}</span>}
-            }
           </div>
 
           {errors.submit && (

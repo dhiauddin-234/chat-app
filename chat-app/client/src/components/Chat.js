@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import RoomList from './RoomList';
 import roomService from '../services/roomService';
 import './Chat.css';
 
@@ -74,31 +73,24 @@ const Chat = ({ socket, username, user, onLogout }) => {
 
   return (
     <div className="chat-container">
-      <div className="sidebar">
-        <h2>Rooms</h2>
-        <RoomList
-          currentRoom={currentRoom}
-          onRoomSelect={handleRoomSelect}
-          onCreateRoom={handleCreateRoom}
-        />
-      </div>
       <div className="chat-main">
         <div className="chat-header">
-          <h2>{currentRoomInfo ? currentRoomInfo.name : 'Select a Room'}</h2>
+          <h2>{currentRoomInfo ? currentRoomInfo.name : 'Chat'}</h2>
           <button onClick={onLogout} className="logout-button">Logout</button>
         </div>
         <div className="chat-messages">
           {messages.map((msg, index) => (
-            <div key={index} className={`message ${msg.userId === user.id ? 'my-message' : ''}`}>
+            <div key={index} className={`message ${msg.userId === user.id ? 'my-message' : 'other-message'}`}>
               <div className="message-content">
                 {msg.isSystem ? (
                   <em>{msg.username} {msg.message}</em>
                 ) : (
                   <>
                     <div className="message-meta">
-                      <strong>{msg.username}</strong> - <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
+                      <strong>{msg.username}</strong>
                     </div>
                     <p>{msg.message}</p>
+                    <small>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
                   </>
                 )}
               </div>
@@ -114,7 +106,9 @@ const Chat = ({ socket, username, user, onLogout }) => {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
             />
-            <button type="submit">Send</button>
+            <button type="submit">
+              &#10148;
+            </button>
           </div>
         </form>
       </div>
