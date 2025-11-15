@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Auth.css';
+import './Register.css';
 
 const Register = ({ onRegister, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
@@ -88,14 +88,14 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
+    <div className="register-container">
+      <div className="register-card">
+        <div className="register-header">
           <h1>💬 Professional Chat</h1>
           <p>Create your professional account</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="register-form">
           <div className="input-group">
             <label htmlFor="email">Email Address</label>
             <input
@@ -174,7 +174,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
           
           <button 
             type="submit" 
-            className="auth-button"
+            className="register-button"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -188,7 +188,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
           </button>
         </form>
         
-        <div className="auth-footer">
+        <div className="register-footer">
           <p>
             Already have an account?{' '}
             <button 

@@ -13,6 +13,7 @@ const app = express();
 const allowedOrigins = [
   'https://chat-app-gmfn.onrender.com',
   'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app',
+  'https://3001-firebase-chat-app-1762949997760.cluster-isls3qj2gbd5qs4jkjqvhahfv6.cloudworkstations.dev',
   // Local development
   'http://localhost:3000',
   'http://127.0.0.1:3000',
