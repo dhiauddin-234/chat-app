@@ -3,23 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import './Login.css';
 
-const Login = () => {
+const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError(null);
     try {
-      const { token } = await authService.login({ username, password });
-      if (token) {
-        localStorage.setItem('token', token);
-        navigate('/chat');
-      } else {
-        setError('Login failed: Invalid response from server.');
-      }
+      await authService.register({ username, password });
+      navigate('/login');
     } catch (error) {
       setError(error.message || 'An unexpected error occurred.');
     }
@@ -28,9 +23,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-form">
-        <h2>Orbitz Login</h2>
+        <h2>Create Orbitz Account</h2>
         {error && <p className="error-message">{error}</p>}
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleRegister}>
           <input
             type="text"
             placeholder="Username"
@@ -43,12 +38,12 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit">Log In</button>
+          <button type="submit">Sign Up</button>
         </form>
-        <p className="bottom-text">Don't have an account? <a href="/register">Sign Up</a></p>
+        <p className="bottom-text">Already have an account? <a href="/login">Log In</a></p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
