@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const roomManager = require('./roomManager');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -42,6 +43,9 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
+
+// Add auth routes
+app.use('/api/auth', authRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {
