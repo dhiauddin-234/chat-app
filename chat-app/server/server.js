@@ -10,33 +10,16 @@ const authRoutes = require('./routes/auth');
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-  'https://chat-app-gmfn.onrender.com',
-  'https://68d63bf0b8a9bc00089b64ec--orbitz-2.netlify.app',
-  'https://3001-firebase-chat-app-1762949997760.cluster-isls3qj2gbd5qs4jkjqvhahfv6.cloudworkstations.dev',
-  // Local development
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3001'
-];
-
-// Enable CORS for all routes
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin.startsWith(allowed.replace('https://', 'http://')))) {
-      return callback(null, true);
-    }
-    console.warn(`CORS blocked request from origin: ${origin}`);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
+const corsOptions = {
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With'],
-  exposedHeaders: ['Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -50,17 +33,10 @@ app.use('/api/auth', authRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-            console.warn(`Socket.IO CORS blocked request from origin: ${origin}`);
-            return callback(new Error('Not allowed by CORS'), false);
-        },
+        origin: "*", // Allow all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With'],
-        credentials: true,
-        exposedHeaders: ['Authorization']
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
     },
     transports: ['websocket', 'polling'],
     connectionStateRecovery: {
@@ -73,7 +49,7 @@ connectDB().catch(err => {
   console.log('MongoDB connection failed, using in-memory storage for development');
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Room management routes (no authentication)
 app.post('/api/rooms', roomManager.validateRoomCreation, roomManager.createRoom);
@@ -237,7 +213,7 @@ io.on('connection', (socket) => {
   // Handle user disconnection
   socket.on('disconnect', async () => {
     const user = users.get(socket.id);
-    if (user) {
+_    if (user) {
       if (user.currentRoom) {
         socket.to(user.currentRoom).emit('user_left', {
           userId: socket.id,
