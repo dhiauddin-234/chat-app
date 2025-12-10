@@ -46,18 +46,8 @@ const validateRoomCreation = [
     .withMessage('isPrivate must be a boolean')
 ];
 
-// Generate unique room ID
-const generateRoomId = () => {
-  return 'room_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-};
-
-// Generate unique message ID
-const generateMessageId = () => {
-  return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-};
-
 // Create a new room
-const createRoom = async (req, res) => {
+const createRoom = (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -75,7 +65,6 @@ const createRoom = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
-    // Check if room name already exists
     const roomName = name.trim();
     const existingRoom = Array.from(rooms.values()).find(
       room => room.name.toLowerCase() === roomName.toLowerCase()
@@ -88,7 +77,6 @@ const createRoom = async (req, res) => {
       });
     }
 
-    // Create room
     const roomId = 'room_' + roomIdCounter++;
     const newRoom = {
       id: roomId,
@@ -127,17 +115,15 @@ const createRoom = async (req, res) => {
 };
 
 // Get all public rooms and user's private rooms
-const getRooms = async (req, res) => {
+const getRooms = (req, res) => {
     try {
         const userId = req.user ? req.user.userId : null;
 
         const roomList = Array.from(rooms.values())
             .filter(room => {
                 if (room.isPrivate) {
-                    // If the user is authenticated, include private rooms they are a member of
                     return userId && room.members.includes(userId);
                 } else {
-                    // Always include public rooms
                     return true;
                 }
             })
@@ -169,7 +155,7 @@ const getRooms = async (req, res) => {
 };
 
 // Join a room
-const joinRoom = async (req, res) => {
+const joinRoom = (req, res) => {
   try {
     const { roomId } = req.params;
     const userId = req.user ? req.user.userId : null;
@@ -193,7 +179,6 @@ const joinRoom = async (req, res) => {
       });
     }
 
-    // Add user to room if not already a member
     if (!room.members.includes(userId)) {
       room.members.push(userId);
     }
@@ -221,7 +206,7 @@ const joinRoom = async (req, res) => {
 };
 
 // Leave a room
-const leaveRoom = async (req, res) => {
+const leaveRoom = (req, res) => {
   try {
     const { roomId } = req.params;
     const userId = req.user ? req.user.userId : null;
@@ -230,19 +215,11 @@ const leaveRoom = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
-    const room = await Room.findById(roomId);
-    if (!room) {
-      return res.status(404).json({
-        success: false,
-        message: 'Room not found'
-      });
+    const room = rooms.get(roomId);
+    if (room) {
+        room.members = room.members.filter(memberId => memberId !== userId);
     }
 
-    // Remove user from room members
-    room.members = room.members.filter(memberId => memberId.toString() !== userId);
-    await room.save();
-    
-    // If user was in this room, remove them from tracking
     if (userRooms.get(userId) === roomId) {
       userRooms.delete(userId);
     }
@@ -261,13 +238,11 @@ const leaveRoom = async (req, res) => {
   }
 };
 
-// Helper functions for socket operations
 const getUserRoom = (userId) => {
   return userRooms.get(userId) || DEFAULT_ROOM;
 };
 
-const setUserRoom = async (userId, roomId) => {
-  try {
+const setUserRoom = (userId, roomId) => {
     const room = rooms.get(roomId);
     if (room) {
       if (!room.members.includes(userId)) {
@@ -277,137 +252,82 @@ const setUserRoom = async (userId, roomId) => {
       return true;
     }
     return false;
-  } catch (error) {
-    console.error('Error setting user room:', error);
-    return false;
-  }
 };
 
-const removeUserFromRoom = async (userId) => {
+const removeUserFromRoom = (userId) => {
   const roomId = userRooms.get(userId);
   if (roomId) {
-    try {
-      const room = await Room.findById(roomId);
-      if (room) {
-        room.members = room.members.filter(memberId => memberId.toString() !== userId);
-        await room.save();
-      }
-    } catch (error) {
-      console.error('Error removing user from room:', error);
+    const room = rooms.get(roomId);
+    if (room) {
+      room.members = room.members.filter(memberId => memberId !== userId);
     }
     userRooms.delete(userId);
   }
 };
 
-const getRoomMembers = async (roomId) => {
-  try {
+const getRoomMembers = (roomId) => {
     const room = rooms.get(roomId);
     return room ? room.members : [];
-  } catch (error) {
-    console.error('Error getting room members:', error);
-    return [];
-  }
 };
 
-const addMessageToRoom = async (roomId, message) => {
-  try {
+const addMessageToRoom = (roomId, message) => {
     const messageId = 'msg_' + messageIdCounter++;
     const newMessage = {
       id: messageId,
-      content: message.content,
-      sender: message.sender,
-      username: message.username,
-      room: roomId,
-      isSystem: message.isSystem || false,
+      ...message,
       timestamp: new Date(),
-      isEdited: false
     };
 
     const roomMessages = messages.get(roomId) || [];
     roomMessages.push(newMessage);
     messages.set(roomId, roomMessages);
     
-    return {
-      id: newMessage.id,
-      content: newMessage.content,
-      sender: newMessage.sender,
-      username: newMessage.username,
-      timestamp: newMessage.timestamp,
-      isSystem: newMessage.isSystem,
-      isEdited: newMessage.isEdited
-    };
-  } catch (error) {
-    console.error('Error adding message to room:', error);
-    return null;
-  }
+    return newMessage;
 };
 
-const getRoomMessages = async (roomId) => {
-  try {
+const getRoomMessages = (roomId) => {
     const roomMessages = messages.get(roomId) || [];
     return roomMessages
       .sort((a, b) => a.timestamp - b.timestamp)
       .slice(-100); // Last 100 messages
-  } catch (error) {
-    console.error('Error getting room messages:', error);
-    return [];
-  }
 };
 
-const deleteMessage = async (roomId, messageId, userId) => {
-  try {
-    const message = await Message.findById(messageId);
-    if (!message || message.room.toString() !== roomId) return false;
+const deleteMessage = (roomId, messageId, userId) => {
+  const roomMessages = messages.get(roomId);
+  if (!roomMessages) return false;
 
-    const room = await Room.findById(roomId);
-    if (!room) return false;
+  const messageIndex = roomMessages.findIndex(m => m.id === messageId);
+  if (messageIndex === -1) return false;
 
-    // Check if user can delete (message sender or room creator)
-    if (message.sender.toString() !== userId && room.creator && room.creator.toString() !== userId) {
-      return false;
-    }
+  const message = roomMessages[messageIndex];
+  const room = rooms.get(roomId);
 
-    await Message.findByIdAndDelete(messageId);
-    return true;
-  } catch (error) {
-    console.error('Error deleting message:', error);
+  if (message.sender !== userId && room.creator && room.creator !== userId) {
     return false;
   }
+
+  roomMessages.splice(messageIndex, 1);
+  messages.set(roomId, roomMessages);
+  return true;
 };
 
-const editMessage = async (roomId, messageId, newContent, userId) => {
-  try {
-    const message = await Message.findById(messageId);
-    if (!message || message.room.toString() !== roomId) return false;
+const editMessage = (roomId, messageId, newContent, userId) => {
+  const roomMessages = messages.get(roomId);
+  if (!roomMessages) return false;
 
-    // Check if user can edit (only message sender)
-    if (message.sender.toString() !== userId) return false;
+  const message = roomMessages.find(m => m.id === messageId);
+  if (!message) return false;
 
-    message.content = newContent;
-    message.isEdited = true;
-    message.editedAt = new Date();
-    
-    await message.save();
-    await message.populate('sender', 'username');
+  if (message.sender !== userId) return false;
 
-    return {
-      id: message._id,
-      content: message.content,
-      sender: message.sender._id,
-      username: message.sender.username,
-      timestamp: message.createdAt,
-      isSystem: message.isSystem,
-      isEdited: message.isEdited,
-      editedAt: message.editedAt
-    };
-  } catch (error) {
-    console.error('Error editing message:', error);
-    return false;
-  }
+  message.content = newContent;
+  message.isEdited = true;
+  message.editedAt = new Date();
+
+  return message;
 };
 
-// Delete a room (only by creator)
-const deleteRoom = async (req, res) => {
+const deleteRoom = (req, res) => {
   try {
     const { roomId } = req.params;
     const userId = req.user ? req.user.userId : null;
@@ -416,24 +336,15 @@ const deleteRoom = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
-    // Check if room exists
     const room = rooms.get(roomId);
     if (!room) {
-      return res.status(404).json({
-        success: false,
-        message: 'Room not found'
-      });
+      return res.status(404).json({ success: false, message: 'Room not found' });
     }
 
-    // Prevent deletion of default room
-    if (room.id === DEFAULT_ROOM || room.name === 'General') {
-      return res.status(403).json({
-        success: false,
-        message: 'Cannot delete the default room'
-      });
+    if (room.id === DEFAULT_ROOM) {
+      return res.status(403).json({ success: false, message: 'Cannot delete the default room' });
     }
 
-    // Check if user is the creator
     if (room.creator && room.creator.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -441,24 +352,7 @@ const deleteRoom = async (req, res) => {
       });
     }
 
-    // Move all members to default room
-    const members = room.members;
-    const defaultRoom = rooms.get(DEFAULT_ROOM);
-    
-    if (defaultRoom) {
-      // Add all room members to default room if not already there
-      for (const memberId of members) {
-        if (!defaultRoom.members.includes(memberId)) {
-          defaultRoom.members.push(memberId);
-        }
-        userRooms.set(memberId.toString(), DEFAULT_ROOM);
-      }
-    }
-
-    // Delete all messages in the room
     messages.delete(roomId);
-    
-    // Delete the room
     rooms.delete(roomId);
 
     res.json({
