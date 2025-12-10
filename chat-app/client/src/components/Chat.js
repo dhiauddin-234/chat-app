@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import socket from '../socket';
+import { getSocket } from '../socket';
 import './Chat.css';
 
 const Chat = ({ room, onBack }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const socket = getSocket();
 
   useEffect(() => {
     if (room) {
@@ -24,7 +25,7 @@ const Chat = ({ room, onBack }) => {
         socket.off('room_joined');
       };
     }
-  }, [room]);
+  }, [room, socket]);
 
   useEffect(() => {
     scrollToBottom();

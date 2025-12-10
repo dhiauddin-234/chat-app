@@ -42,7 +42,7 @@ const io = new Server(server, {
     }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Mock database for storing users
 const users = new Map();

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { initSocket } from '../socket';
 import './Login.css';
 
 const Login = () => {
@@ -10,7 +11,7 @@ const Login = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('http://localhost:3002/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,6 +22,7 @@ const Login = () => {
       const data = await response.json();
       if (data.success) {
         localStorage.setItem('token', data.token);
+        initSocket(); // Initialize socket after login
         navigate('/');
       } else {
         setError(data.message);
