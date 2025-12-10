@@ -17,10 +17,11 @@ const RoomList = ({ onRoomSelect }) => {
   const loadRooms = async () => {
     try {
       setIsLoading(true);
+      setError(''); // Clear previous errors
       const allRooms = await roomService.getRooms();
       setRooms(allRooms || []);
     } catch (err) {
-      setError('Failed to load rooms. Please try again later.');
+      setError('Connection failed. Unable to sync with the grid.');
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +51,7 @@ const RoomList = ({ onRoomSelect }) => {
   };
 
   if (isLoading) {
-    return <div className="loading-container">Loading rooms...</div>;
+    return <div className="loading-container">Syncing with the Grid...</div>;
   }
 
   if (error) {
@@ -60,7 +61,7 @@ const RoomList = ({ onRoomSelect }) => {
   return (
     <div className="room-list-container">
       <div className="room-list-header">
-        <h3>Chats</h3>
+        <h3>Channels</h3>
         <button onClick={() => setShowCreateRoom(true)} className="create-room-btn">
           +
         </button>
@@ -69,7 +70,7 @@ const RoomList = ({ onRoomSelect }) => {
       <div className="search-container">
         <input
           type="text"
-          placeholder="Search or start a new chat"
+          placeholder="Access channel or initialize new link"
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -83,7 +84,7 @@ const RoomList = ({ onRoomSelect }) => {
               <div className="room-avatar">{getAvatar(room.name)}</div>
               <div className="room-details">
                 <div className="room-name">{room.name}</div>
-                <div className="room-description">{room.description || 'No description'}</div>
+                <div className="room-description">{room.description || 'No channel briefing'}</div>
               </div>
               <div className="room-meta">
                 <div className="room-timestamp">{formatDate(room.createdAt)}</div>
@@ -92,9 +93,9 @@ const RoomList = ({ onRoomSelect }) => {
           ))
         ) : (
           <div className="no-rooms-message">
-            <p>No rooms found.</p>
+            <p>No channels detected.</p>
             <button onClick={() => setShowCreateRoom(true)} className="create-first-room-btn">
-              Create a New Room
+              Establish New Channel
             </button>
           </div>
         )}
