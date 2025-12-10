@@ -34,7 +34,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
-        <div class="login-card">
+        <div className="login-card">
             <div className="login-header">
                 <h2>Welcome</h2>
                 <p>
