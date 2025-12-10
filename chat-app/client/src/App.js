@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Chat from './components/Chat';
 import RoomList from './components/RoomList';
@@ -11,17 +10,31 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
+  const [selectedRoom, setSelectedRoom] = useState(null);
+
+  const handleRoomSelect = (room) => {
+    setSelectedRoom(room);
+  };
+
+  const handleBack = () => {
+    setSelectedRoom(null);
+  };
+
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
           path="/"
-          element={<PrivateRoute><RoomList /></PrivateRoute>}
-        />
-        <Route
-          path="/chat/:roomId"
-          element={<PrivateRoute><Chat /></PrivateRoute>}
+          element={
+            <PrivateRoute>
+              {selectedRoom ? (
+                <Chat room={selectedRoom} onBack={handleBack} />
+              ) : (
+                <RoomList onRoomSelect={handleRoomSelect} />
+              )}
+            </PrivateRoute>
+          }
         />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

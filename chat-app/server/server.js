@@ -44,48 +44,26 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3001;
 
-// Mock database for storing users and OTPs
+// Mock database for storing users
 const users = new Map();
-const otps = new Map();
 
 // Authentication routes
-app.post('/api/auth/otp', (req, res) => {
-  const { phoneNumber } = req.body;
-  if (!phoneNumber) {
-    return res.status(400).json({ success: false, message: 'Phone number is required' });
-  }
-
-  // Generate a random 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otps.set(phoneNumber, otp);
-
-  // In a real application, you would send this OTP via SMS
-  console.log(`OTP for ${phoneNumber}: ${otp}`);
-
-  res.json({ success: true, message: 'OTP sent successfully' });
-});
-
-app.post('/api/auth/verify', (req, res) => {
-  const { phoneNumber, otp } = req.body;
-  if (!phoneNumber || !otp) {
-    return res.status(400).json({ success: false, message: 'Phone number and OTP are required' });
-  }
-
-  const storedOtp = otps.get(phoneNumber);
-  if (storedOtp !== otp) {
-    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+app.post('/api/auth/login', (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(400).json({ success: false, message: 'Username is required' });
   }
 
   // Create a new user or find an existing one
-  let user = users.get(phoneNumber);
+  let user = users.get(username);
   if (!user) {
     const userId = `user_${users.size + 1}`;
-    user = { id: userId, phoneNumber };
-    users.set(phoneNumber, user);
+    user = { id: userId, username };
+    users.set(username, user);
   }
 
   // Generate a JWT token
-  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '1h' });
+  const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '1h' });
 
   res.json({ success: true, token });
 });
@@ -102,6 +80,7 @@ const verifyToken = (req, res, next) => {
             return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
         }
         req.userId = decoded.userId;
+        req.username = decoded.username;
         next();
     });
 };
@@ -116,38 +95,45 @@ app.delete('/api/rooms/:roomId', verifyToken, roomManager.deleteRoom);
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
   
-  // Simplified user identification
-  const userId = socket.id;
-  const username = `User-${socket.id.substring(0, 5)}`;
-  socket.userId = userId;
-  socket.username = username;
+  const token = socket.handshake.auth.token;
+  if (token) {
+      jwt.verify(token, process.env.JWT_SECRET || 'your_default_secret', (err, decoded) => {
+          if (err) {
+              return socket.disconnect('unauthorized');
+          }
+          socket.userId = decoded.userId;
+          socket.username = decoded.username;
 
-  users.set(socket.id, {
-    userId: userId,
-    username: username,
-    currentRoom: null
-  });
+          users.set(socket.id, {
+            userId: socket.userId,
+            username: socket.username,
+            currentRoom: null
+          });
 
-  // Automatically join a default room
-  const defaultRoom = roomManager.DEFAULT_ROOM;
-  socket.join(defaultRoom);
-  roomManager.setUserRoom(userId, defaultRoom);
-  users.get(socket.id).currentRoom = defaultRoom;
+          // Automatically join a default room
+          const defaultRoom = roomManager.DEFAULT_ROOM;
+          socket.join(defaultRoom);
+          roomManager.setUserRoom(socket.userId, defaultRoom);
+          users.get(socket.id).currentRoom = defaultRoom;
 
-  // Notify room about new user
-  socket.to(defaultRoom).emit('user_joined', {
-    userId: socket.id,
-    username: username,
-    roomId: defaultRoom
-  });
+          // Notify room about new user
+          socket.to(defaultRoom).emit('user_joined', {
+            userId: socket.id,
+            username: socket.username,
+            roomId: defaultRoom
+          });
 
-  // Send room info to user
-  socket.emit('room_users', {
-    roomId: defaultRoom,
-    users: Array.from(users.values())
-      .filter(u => u.currentRoom === defaultRoom)
-      .map(u => ({ id: u.userId, username: u.username }))
-  });
+          // Send room info to user
+          socket.emit('room_users', {
+            roomId: defaultRoom,
+            users: Array.from(users.values())
+              .filter(u => u.currentRoom === defaultRoom)
+              .map(u => ({ id: u.userId, username: u.username }))
+          });
+      });
+  } else {
+      return socket.disconnect('unauthorized');
+  }
 
 
   // Handle room switching

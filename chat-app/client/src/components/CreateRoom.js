@@ -5,16 +5,15 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    isPrivate: false
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
     
     if (errors[name]) {
@@ -29,13 +28,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Room name is required';
-    } else if (formData.name.trim().length < 1 || formData.name.trim().length > 50) {
-      newErrors.name = 'Room name must be 1-50 characters';
-    }
-
-    if (formData.description && formData.description.length > 200) {
-      newErrors.description = 'Description must be less than 200 characters';
+      newErrors.name = 'Group name is required';
     }
 
     setErrors(newErrors);
@@ -56,11 +49,10 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
       await onCreateRoom({
         name: formData.name.trim(),
         description: formData.description.trim(),
-        isPrivate: formData.isPrivate
       });
       onClose();
     } catch (error) {
-      setErrors({ submit: error.message || 'Failed to create room. Please try again.' });
+      setErrors({ submit: error.message || 'Failed to create group. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +62,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
     <div className="create-room-overlay">
       <div className="create-room-modal">
         <div className="create-room-header">
-          <h2>🏢 Create New Room</h2>
+          <h2>New Group</h2>
           <button className="close-button" onClick={onClose} disabled={isLoading}>
             ✕
           </button>
@@ -78,15 +70,13 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
         
         <form onSubmit={handleSubmit} className="create-room-form">
           <div className="input-group">
-            <label htmlFor="name">Room Name *</label>
             <input
               id="name"
               name="name"
               type="text"
-              placeholder="Enter room name"
+              placeholder="Group name"
               value={formData.name}
               onChange={handleChange}
-              className={errors.name ? 'error' : ''}
               disabled={isLoading}
               autoFocus
               required
@@ -95,35 +85,15 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
           </div>
 
           <div className="input-group">
-            <label htmlFor="description">Description</label>
             <textarea
               id="description"
               name="description"
-              placeholder="Describe what this room is about (optional)"
+              placeholder="Group description (optional)"
               value={formData.description}
               onChange={handleChange}
-              className={errors.description ? 'error' : ''}
               disabled={isLoading}
               rows={3}
             />
-            {errors.description && <span className="error-message">{errors.description}</span>}
-          </div>
-
-          <div className="checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="isPrivate"
-                checked={formData.isPrivate}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-              <span className="checkbox-custom"></span>
-              <span className="checkbox-text">
-                🔒 Private Room
-                <small>Only invited members can join</small>
-              </span>
-            </label>
           </div>
 
           {errors.submit && (
@@ -144,14 +114,7 @@ const CreateRoom = ({ onCreateRoom, onClose }) => {
               className="create-button"
               disabled={isLoading || !formData.name.trim()}
             >
-              {isLoading ? (
-                <>
-                  <span className="spinner"></span>
-                  Creating...
-                </>
-              ) : (
-                'Create Room'
-              )}
+              {isLoading ? 'Creating...' : 'Create Group'}
             </button>
           </div>
         </form>

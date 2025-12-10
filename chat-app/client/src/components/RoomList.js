@@ -17,7 +17,7 @@ const RoomList = ({ onRoomSelect }) => {
   const loadRooms = async () => {
     try {
       setIsLoading(true);
-      setError(''); // Clear previous errors
+      setError('');
       const allRooms = await roomService.getRooms();
       setRooms(allRooms || []);
     } catch (err) {
@@ -33,72 +33,62 @@ const RoomList = ({ onRoomSelect }) => {
       await loadRooms();
       setShowCreateRoom(false);
     } catch (err) {
-      // The CreateRoom component will handle showing the error
+        // Error is handled in the CreateRoom component
     }
   };
 
   const filteredRooms = rooms.filter(room =>
     room.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
+  
   const getAvatar = (name) => {
     return name.charAt(0).toUpperCase();
   };
 
-  if (isLoading) {
-    return <div className="loading-container">Syncing with the Grid...</div>;
-  }
-
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
-
   return (
     <div className="room-list-container">
       <div className="room-list-header">
-        <h3>Channels</h3>
-        <button onClick={() => setShowCreateRoom(true)} className="create-room-btn">
-          +
-        </button>
+        <h3>WhatsApp</h3>
+        <div className="header-icons">
+          <button className="icon-button">&#128269;</button> 
+          <button className="icon-button">&#8942;</button>
+        </div>
       </div>
-
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder="Access channel or initialize new link"
-          className="search-input"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      
+      <div className="room-list-tabs">
+          <div className="tab-item active">Chats</div>
+          <div className="tab-item">Status</div>
+          <div className="tab-item">Calls</div>
       </div>
 
       <div className="rooms-list">
         {filteredRooms.length > 0 ? (
           filteredRooms.map(room => (
-            <div key={room.id} className="room-item" onClick={() => onRoomSelect(room.id)}>
+            <div key={room.id} className="room-item" onClick={() => onRoomSelect(room)}>
               <div className="room-avatar">{getAvatar(room.name)}</div>
               <div className="room-details">
-                <div className="room-name">{room.name}</div>
-                <div className="room-description">{room.description || 'No channel briefing'}</div>
-              </div>
-              <div className="room-meta">
-                <div className="room-timestamp">{formatDate(room.createdAt)}</div>
+                <div class="room-info">
+                    <div className="room-name">{room.name}</div>
+                    <div className="room-timestamp">{new Date(room.createdAt).toLocaleTimeString()}</div>
+                </div>
+                <div class="room-last-message">
+                    <div className="room-description">{room.description || 'No channel briefing'}</div>
+                    <div className="unread-count">3</div>
+                </div>
               </div>
             </div>
           ))
         ) : (
           <div className="no-rooms-message">
-            <p>No channels detected.</p>
-            <button onClick={() => setShowCreateRoom(true)} className="create-first-room-btn">
-              Establish New Channel
-            </button>
+            <p>No chats, contacts or messages found.</p>
           </div>
         )}
+      </div>
+
+      <div className="fab-container">
+        <button onClick={() => setShowCreateRoom(true)} className="fab">
+          &#128221; 
+        </button>
       </div>
 
       {showCreateRoom && (

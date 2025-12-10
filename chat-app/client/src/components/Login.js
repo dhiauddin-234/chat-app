@@ -1,46 +1,21 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 const Login = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1);
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handlePhoneNumberSubmit = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/api/auth/otp', {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setStep(2);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to send OTP');
-    }
-  };
-
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phoneNumber, otp }),
+        body: JSON.stringify({ username }),
       });
 
       const data = await response.json();
@@ -51,39 +26,31 @@ const Login = () => {
         setError(data.message);
       }
     } catch (err) {
-      setError('Failed to verify OTP');
+      setError('Failed to login');
     }
   };
 
   return (
     <div className="login-container">
-      {step === 1 ? (
-        <form onSubmit={handlePhoneNumberSubmit} className="login-form">
-          <h2>Enter your phone number</h2>
-          <input
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Phone number"
-            required
-          />
-          <button type="submit">Send OTP</button>
-          {error && <p className="error-message">{error}</p>}
-        </form>
-      ) : (
-        <form onSubmit={handleOtpSubmit} className="login-form">
-          <h2>Enter the OTP</h2>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="OTP"
-            required
-          />
-          <button type="submit">Verify OTP</button>
-          {error && <p className="error-message">{error}</p>}
-        </form>
-      )}
+        <div class="login-card">
+            <div className="login-header">
+                <h2>Welcome</h2>
+                <p>
+                    Enter your username to start chatting.
+                </p>
+            </div>
+            <form onSubmit={handleLoginSubmit} className="login-form">
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    required
+                />
+                <button type="submit" className="login-button">Login</button>
+                {error && <p className="error-message">{error}</p>}
+            </form>
+        </div>
     </div>
   );
 };

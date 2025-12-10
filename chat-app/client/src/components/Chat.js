@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import socket from '../socket';
 import './Chat.css';
 
-const Chat = ({ room }) => {
+const Chat = ({ room, onBack }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
@@ -45,25 +45,43 @@ const Chat = ({ room }) => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>{room ? room.name : 'Chat'}</h2>
+        <div className="chat-header-left">
+          <button className="back-button" onClick={onBack}>&#8592;</button>
+          <div className="chat-header-info">
+            <h2>{room ? room.name : 'Chat'}</h2>
+            <p>online</p>
+          </div>
+        </div>
+        <div className="chat-header-right">
+          <button className="icon-button">&#128249;</button> 
+          <button className="icon-button">&#128222;</button>
+          <button className="icon-button">&#8942;</button>
+        </div>
       </div>
       <div className="chat-messages">
         {messages.map((msg) => (
-          <div key={msg.id} className="message">
-            <span className="message-sender">{msg.sender.substring(0,5)}:</span>
-            <span className="message-content">{msg.content}</span>
+          <div key={msg.id} className={`message ${msg.sender === socket.id ? 'my-message' : 'other-message'}`}>
+             <div className="message-content">
+                <p>{msg.content}</p>
+                <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
+            </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
       <form className="chat-input-form" onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-        />
-        <button type="submit">Send</button>
+        <div className='input-container'>
+            <button className="icon-button">&#128512;</button>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+            />
+            <button className="icon-button">&#128206;</button>
+            <button className="icon-button">&#128247;</button>
+        </div>
+        <button type="submit" className="send-button">&#10148;</button>
       </form>
     </div>
   );
