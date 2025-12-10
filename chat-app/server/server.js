@@ -1,9 +1,9 @@
+
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const connectDB = require('./config/database');
 const roomManager = require('./roomManager');
 
 const app = express();
@@ -12,7 +12,7 @@ const app = express();
 const corsOptions = {
   origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type'],
   credentials: true
 };
 
@@ -31,7 +31,7 @@ const io = new Server(server, {
     cors: {
         origin: "*", // Allow all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type'],
         credentials: true
     },
     transports: ['websocket', 'polling'],
@@ -39,10 +39,6 @@ const io = new Server(server, {
         maxDisconnectionDuration: 2 * 60 * 1000,
         skipMiddlewares: true,
     }
-});
-
-connectDB().catch(err => {
-  console.log('MongoDB connection failed, using in-memory storage for development');
 });
 
 const PORT = process.env.PORT || 3001;
@@ -76,12 +72,6 @@ io.on('connection', (socket) => {
   socket.join(defaultRoom);
   roomManager.setUserRoom(userId, defaultRoom);
   users.get(socket.id).currentRoom = defaultRoom;
-
-  socket.emit('authenticated', {
-    userId: userId,
-    username: username,
-    currentRoom: defaultRoom
-  });
 
   // Notify room about new user
   socket.to(defaultRoom).emit('user_joined', {
@@ -197,7 +187,7 @@ io.on('connection', (socket) => {
 
   socket.on('typing_stop', () => {
     const user = users.get(socket.id);
-    if (user && user.currentRoom) {
+    if (user.currentRoom) {
       socket.to(user.currentRoom).emit('user_stopped_typing', {
         userId: socket.id,
         username: user.username,
