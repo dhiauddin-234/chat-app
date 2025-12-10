@@ -3,8 +3,9 @@ import CreateRoom from './CreateRoom';
 import roomService from '../services/roomService';
 import './RoomList.css';
 
-const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
+const RoomList = ({ onRoomSelect }) => {
   const [rooms, setRooms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,12 +17,10 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
   const loadRooms = async () => {
     try {
       setIsLoading(true);
-      setError('');
-      const response = await roomService.getRooms();
-      setRooms(response.rooms || []);
-    } catch (error) {
-      setError('Failed to load rooms');
-      console.error('Load rooms error:', error);
+      const allRooms = await roomService.getRooms();
+      setRooms(allRooms || []);
+    } catch (err) {
+      setError('Failed to load rooms. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -29,127 +28,82 @@ const RoomList = ({ currentRoom, onRoomSelect, onCreateRoom }) => {
 
   const handleCreateRoom = async (roomData) => {
     try {
-      const response = await roomService.createRoom(roomData);
-      await loadRooms(); // Refresh room list
-      if (onCreateRoom) {
-        onCreateRoom(response.room);
-      }
-    } catch (error) {
-      throw error; // Let CreateRoom component handle the error
+      await roomService.createRoom(roomData);
+      await loadRooms();
+      setShowCreateRoom(false);
+    } catch (err) {
+      // The CreateRoom component will handle showing the error
     }
   };
 
-  const handleRoomClick = (room) => {
-    if (onRoomSelect) {
-      onRoomSelect(room);
-    }
-  };
+  const filteredRooms = rooms.filter(room =>
+    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) {
-      return 'Today';
-    } else if (diffDays === 2) {
-      return 'Yesterday';
-    } else if (diffDays <= 7) {
-      return `${diffDays - 1} days ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
+    return date.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const getAvatar = (name) => {
+    return name.charAt(0).toUpperCase();
   };
 
   if (isLoading) {
-    return (
-      <div className="room-list-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading rooms...</p>
-      </div>
-    );
+    return <div className="loading-container">Loading rooms...</div>;
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
   }
 
   return (
-    <div className="room-list">
+    <div className="room-list-container">
       <div className="room-list-header">
-        <h3>Professional Rooms</h3>
-        <button 
-          className="create-room-btn"
-          onClick={() => setShowCreateRoom(true)}
-          title="Create New Room"
-        >
+        <h3>Chats</h3>
+        <button onClick={() => setShowCreateRoom(true)} className="create-room-btn">
           +
         </button>
       </div>
 
-      {error && (
-        <div className="error-banner">
-          <span>{error}</span>
-          <button onClick={loadRooms} className="retry-btn">
-            Retry
-          </button>
-        </div>
-      )}
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search or start a new chat"
+          className="search-input"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-      <div className="rooms-container">
-        {rooms.length === 0 ? (
-          <div className="no-rooms">
-            <p>No rooms available</p>
-            <button 
-              className="create-first-room-btn"
-              onClick={() => setShowCreateRoom(true)}
-            >
-              Create your first room
-            </button>
-          </div>
-        ) : (
-          <div className="rooms-list">
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className={`room-item ${currentRoom === room.id ? 'active' : ''}`}
-                onClick={() => handleRoomClick(room)}
-              >
-                <div className="room-item-content">
-                  <div className="room-header">
-                    <span className="room-name">
-                      {room.isPrivate && '[Private] '} {room.name}
-                    </span>
-                    <span className="member-count">
-                      {room.memberCount} members
-                    </span>
-                  </div>
-                  {room.description && (
-                    <p className="room-description">{room.description}</p>
-                  )}
-                  <div className="room-meta">
-                    <span className="room-date">
-                      Created {formatDate(room.createdAt)}
-                    </span>
-                    <div className="room-actions">
-                      {room.isMember && (
-                        <span className="member-badge">Member</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {currentRoom === room.id && (
-                  <div className="active-indicator">
-                    <div className="pulse"></div>
-                  </div>
-                )}
+      <div className="rooms-list">
+        {filteredRooms.length > 0 ? (
+          filteredRooms.map(room => (
+            <div key={room.id} className="room-item" onClick={() => onRoomSelect(room.id)}>
+              <div className="room-avatar">{getAvatar(room.name)}</div>
+              <div className="room-details">
+                <div className="room-name">{room.name}</div>
+                <div className="room-description">{room.description || 'No description'}</div>
               </div>
-            ))}
+              <div className="room-meta">
+                <div className="room-timestamp">{formatDate(room.createdAt)}</div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="no-rooms-message">
+            <p>No rooms found.</p>
+            <button onClick={() => setShowCreateRoom(true)} className="create-first-room-btn">
+              Create a New Room
+            </button>
           </div>
         )}
       </div>
 
       {showCreateRoom && (
         <CreateRoom
-          onCreateRoom={handleCreateRoom}
           onClose={() => setShowCreateRoom(false)}
+          onCreateRoom={handleCreateRoom}
         />
       )}
     </div>
