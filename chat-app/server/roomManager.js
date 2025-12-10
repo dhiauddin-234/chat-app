@@ -59,6 +59,7 @@ const createRoom = (req, res) => {
     }
 
     const { name, description = '', isPrivate = false } = req.body;
+    const { userId } = req;
 
     const roomName = name.trim();
     const existingRoom = Array.from(rooms.values()).find(
@@ -77,9 +78,9 @@ const createRoom = (req, res) => {
       id: roomId,
       name: roomName,
       description: description.trim(),
-      creator: 'system',
+      creator: userId,
       isPrivate,
-      members: [],
+      members: [userId],
       createdAt: new Date()
     };
 
@@ -93,7 +94,7 @@ const createRoom = (req, res) => {
         id: newRoom.id,
         name: newRoom.name,
         description: newRoom.description,
-        createdBy: 'system',
+        createdBy: newRoom.creator,
         createdAt: newRoom.createdAt,
         isPrivate: newRoom.isPrivate,
         memberCount: newRoom.members.length
@@ -112,18 +113,20 @@ const createRoom = (req, res) => {
 // Get all public rooms and user's private rooms
 const getRooms = (req, res) => {
     try {
+        const { userId } = req;
         const roomList = Array.from(rooms.values())
+            .filter(room => !room.isPrivate || (room.isPrivate && room.members.includes(userId)))
             .sort((a, b) => b.createdAt - a.createdAt)
             .map(room => ({
                 id: room.id,
                 name: room.name,
                 description: room.description,
                 createdBy: room.creator || 'system',
-                createdByUsername: 'System',
+                createdByUsername: room.creator === 'system' ? 'System' : `User-${room.creator.substring(0, 5)}`,
                 createdAt: room.createdAt,
                 isPrivate: room.isPrivate,
                 memberCount: room.members.length,
-                isMember: true
+                isMember: room.members.includes(userId)
             }));
 
         res.json({
@@ -144,6 +147,7 @@ const getRooms = (req, res) => {
 const joinRoom = (req, res) => {
   try {
     const { roomId } = req.params;
+    const { userId } = req;
 
     const room = rooms.get(roomId);
     if (!room) {
@@ -151,6 +155,17 @@ const joinRoom = (req, res) => {
         success: false,
         message: 'Room not found'
       });
+    }
+
+    if (room.isPrivate && !room.members.includes(userId)) {
+        return res.status(403).json({
+            success: false,
+            message: 'You are not authorized to join this room'
+        });
+    }
+
+    if (!room.members.includes(userId)) {
+        room.members.push(userId);
     }
 
     res.json({
@@ -177,10 +192,11 @@ const joinRoom = (req, res) => {
 const leaveRoom = (req, res) => {
   try {
     const { roomId } = req.params;
+    const { userId } = req;
 
     const room = rooms.get(roomId);
     if (room) {
-        // You may want to implement leaving logic here if needed
+        room.members = room.members.filter(memberId => memberId !== userId);
     }
 
     res.json({
@@ -258,6 +274,13 @@ const deleteMessage = (roomId, messageId, userId) => {
   const messageIndex = roomMessages.findIndex(m => m.id === messageId);
   if (messageIndex === -1) return false;
 
+  const message = roomMessages[messageIndex];
+
+  // Only allow the sender to delete the message
+  if (message.sender !== userId) {
+      return false;
+  }
+
   roomMessages.splice(messageIndex, 1);
   messages.set(roomId, roomMessages);
   return true;
@@ -270,6 +293,11 @@ const editMessage = (roomId, messageId, newContent, userId) => {
   const message = roomMessages.find(m => m.id === messageId);
   if (!message) return false;
 
+  // Only allow the sender to edit the message
+  if (message.sender !== userId) {
+      return false;
+  }
+
   message.content = newContent;
   message.isEdited = true;
   message.editedAt = new Date();
@@ -280,6 +308,7 @@ const editMessage = (roomId, messageId, newContent, userId) => {
 const deleteRoom = (req, res) => {
   try {
     const { roomId } = req.params;
+    const { userId } = req;
 
     const room = rooms.get(roomId);
     if (!room) {
@@ -288,6 +317,10 @@ const deleteRoom = (req, res) => {
 
     if (room.id === DEFAULT_ROOM) {
       return res.status(403).json({ success: false, message: 'Cannot delete the default room' });
+    }
+
+    if (room.creator !== userId) {
+        return res.status(403).json({ success: false, message: 'Only the room creator can delete the room' });
     }
 
     messages.delete(roomId);

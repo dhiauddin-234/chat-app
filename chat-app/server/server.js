@@ -5,6 +5,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const roomManager = require('./roomManager');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
@@ -12,7 +13,7 @@ const app = express();
 const corsOptions = {
   origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
 
@@ -31,7 +32,7 @@ const io = new Server(server, {
     cors: {
         origin: "*", // Allow all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     },
     transports: ['websocket', 'polling'],
@@ -43,14 +44,74 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3001;
 
-// Room management routes (no authentication)
-app.post('/api/rooms', roomManager.validateRoomCreation, roomManager.createRoom);
-app.get('/api/rooms', roomManager.getRooms);
-app.post('/api/rooms/:roomId/join', roomManager.joinRoom);
-app.post('/api/rooms/:roomId/leave', roomManager.leaveRoom);
-app.delete('/api/rooms/:roomId', roomManager.deleteRoom);
-
+// Mock database for storing users and OTPs
 const users = new Map();
+const otps = new Map();
+
+// Authentication routes
+app.post('/api/auth/otp', (req, res) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber) {
+    return res.status(400).json({ success: false, message: 'Phone number is required' });
+  }
+
+  // Generate a random 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otps.set(phoneNumber, otp);
+
+  // In a real application, you would send this OTP via SMS
+  console.log(`OTP for ${phoneNumber}: ${otp}`);
+
+  res.json({ success: true, message: 'OTP sent successfully' });
+});
+
+app.post('/api/auth/verify', (req, res) => {
+  const { phoneNumber, otp } = req.body;
+  if (!phoneNumber || !otp) {
+    return res.status(400).json({ success: false, message: 'Phone number and OTP are required' });
+  }
+
+  const storedOtp = otps.get(phoneNumber);
+  if (storedOtp !== otp) {
+    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  }
+
+  // Create a new user or find an existing one
+  let user = users.get(phoneNumber);
+  if (!user) {
+    const userId = `user_${users.size + 1}`;
+    user = { id: userId, phoneNumber };
+    users.set(phoneNumber, user);
+  }
+
+  // Generate a JWT token
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '1h' });
+
+  res.json({ success: true, token });
+});
+
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET || 'your_default_secret', (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+        }
+        req.userId = decoded.userId;
+        next();
+    });
+};
+
+// Room management routes (protected)
+app.post('/api/rooms', verifyToken, roomManager.validateRoomCreation, roomManager.createRoom);
+app.get('/api/rooms', verifyToken, roomManager.getRooms);
+app.post('/api/rooms/:roomId/join', verifyToken, roomManager.joinRoom);
+app.post('/api/rooms/:roomId/leave', verifyToken, roomManager.leaveRoom);
+app.delete('/api/rooms/:roomId', verifyToken, roomManager.deleteRoom);
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
