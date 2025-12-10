@@ -69,7 +69,11 @@ const createRoom = async (req, res) => {
     }
 
     const { name, description = '', isPrivate = false } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user ? req.user.userId : null;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
 
     // Check if room name already exists
     const roomName = name.trim();
@@ -124,44 +128,55 @@ const createRoom = async (req, res) => {
 
 // Get all public rooms and user's private rooms
 const getRooms = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    
-    // Find rooms that are either public or user is a member of
-    const roomList = Array.from(rooms.values())
-      .filter(room => !room.isPrivate || room.members.includes(userId))
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .map(room => ({
-        id: room.id,
-        name: room.name,
-        description: room.description,
-        createdBy: room.creator || 'system',
-        createdByUsername: room.creator ? 'User' : 'System',
-        createdAt: room.createdAt,
-        isPrivate: room.isPrivate,
-        memberCount: room.members.length,
-        isMember: room.members.includes(userId)
-      }));
+    try {
+        const userId = req.user ? req.user.userId : null;
 
-    res.json({
-      success: true,
-      rooms: roomList
-    });
+        const roomList = Array.from(rooms.values())
+            .filter(room => {
+                if (room.isPrivate) {
+                    // If the user is authenticated, include private rooms they are a member of
+                    return userId && room.members.includes(userId);
+                } else {
+                    // Always include public rooms
+                    return true;
+                }
+            })
+            .sort((a, b) => b.createdAt - a.createdAt)
+            .map(room => ({
+                id: room.id,
+                name: room.name,
+                description: room.description,
+                createdBy: room.creator || 'system',
+                createdByUsername: room.creator ? 'User' : 'System',
+                createdAt: room.createdAt,
+                isPrivate: room.isPrivate,
+                memberCount: room.members.length,
+                isMember: userId && room.members.includes(userId)
+            }));
 
-  } catch (error) {
-    console.error('Get rooms error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
+        res.json({
+            success: true,
+            rooms: roomList
+        });
+
+    } catch (error) {
+        console.error('Get rooms error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
 };
 
 // Join a room
 const joinRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user ? req.user.userId : null;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
 
     const room = rooms.get(roomId);
     if (!room) {
@@ -209,7 +224,11 @@ const joinRoom = async (req, res) => {
 const leaveRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user ? req.user.userId : null;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
 
     const room = await Room.findById(roomId);
     if (!room) {
@@ -391,7 +410,11 @@ const editMessage = async (roomId, messageId, newContent, userId) => {
 const deleteRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user ? req.user.userId : null;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
 
     // Check if room exists
     const room = rooms.get(roomId);
