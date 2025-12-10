@@ -5,7 +5,6 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const roomManager = require('./roomManager');
-const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -26,9 +25,6 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
-
-// Add auth routes
-app.use('/api/auth', authRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -213,7 +209,7 @@ io.on('connection', (socket) => {
   // Handle user disconnection
   socket.on('disconnect', async () => {
     const user = users.get(socket.id);
-_    if (user) {
+    if (user) {
       if (user.currentRoom) {
         socket.to(user.currentRoom).emit('user_left', {
           userId: socket.id,
