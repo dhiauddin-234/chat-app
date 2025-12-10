@@ -6,7 +6,10 @@ let socket;
 
 export const initSocket = () => {
   const token = localStorage.getItem('token');
-  if (token && !socket) {
+  if (socket) {
+    socket.disconnect();
+  }
+  if (token) {
     socket = io(URL, {
       auth: {
         token
