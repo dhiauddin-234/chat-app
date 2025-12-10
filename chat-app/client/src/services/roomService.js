@@ -1,11 +1,10 @@
-
 // Use local development server for demo
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'http://localhost:3001/api/rooms';
 
 class RoomService {
   async createRoom(roomData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/rooms`, {
+      const response = await fetch(`${API_BASE_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +27,7 @@ class RoomService {
 
   async getRooms() {
     try {
-      const response = await fetch(`${API_BASE_URL}/rooms`, {
+      const response = await fetch(`${API_BASE_URL}`, {
         method: 'GET',
       });
 
@@ -47,7 +46,7 @@ class RoomService {
 
   async joinRoom(roomId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/join`, {
+      const response = await fetch(`${API_BASE_URL}/${roomId}/join`, {
         method: 'POST',
       });
 
@@ -66,7 +65,7 @@ class RoomService {
 
   async leaveRoom(roomId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}`, {
+      const response = await fetch(`${API_BASE_URL}/${roomId}`, {
         method: 'DELETE',
       });
 
@@ -79,28 +78,6 @@ class RoomService {
       return data;
     } catch (error) {
       console.error('Leave room error:', error);
-      throw error;
-    }
-  }
-
-  async deleteRoom(roomId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete room');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Delete room error:', error);
       throw error;
     }
   }

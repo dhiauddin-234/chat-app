@@ -49,7 +49,7 @@ connectDB().catch(err => {
   console.log('MongoDB connection failed, using in-memory storage for development');
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 3001;
 
 // Room management routes (no authentication)
 app.post('/api/rooms', roomManager.validateRoomCreation, roomManager.createRoom);
